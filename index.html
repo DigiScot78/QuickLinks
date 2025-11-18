@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quick Links</title>
+  <title>Tabbed Shortcut Grid</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -42,7 +42,7 @@
     }
 
     .wrapper {
-      width: var(--wrapper-width);  /* controlled by slider */
+      width: var(--wrapper-width);
       margin: 0 auto;
     }
 
@@ -82,6 +82,14 @@
       max-width: 320px;
     }
 
+    /* Editable text styling */
+    .editable-text[contenteditable="true"] {
+      outline: none;
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.7);
+      padding-bottom: 1px;
+      cursor: text;
+    }
+
     .grid-card {
       width: 100%;
       background: radial-gradient(circle at top left, #020617 0, #020617 35%, #050816 100%);
@@ -90,7 +98,7 @@
       padding: 10px 12px 14px;
       box-shadow: var(--shadow-soft);
       position: relative;
-      overflow: hidden;   /* clip glow, no scrollbars */
+      overflow: hidden;
     }
 
     .grid-card::before {
@@ -152,7 +160,8 @@
         color var(--transition-fast),
         box-shadow var(--transition-fast),
         transform var(--transition-fast),
-        border-color var(--transition-fast);
+        border-color var(--transition-fast),
+        opacity var(--transition-fast);
       white-space: nowrap;
     }
 
@@ -167,6 +176,11 @@
       border-color: rgba(56, 189, 248, 0.9);
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.95));
+    }
+
+    .tab-link.dragging-tab {
+      opacity: 0.4;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.9);
     }
 
     .settings-btn {
@@ -562,7 +576,7 @@
       align-items: center;
       gap: 6px;
       justify-content: center;
-      min-height: var(--tile-height); /* adjustable */
+      min-height: var(--tile-height);
     }
 
     .shortcut-icon-wrap {
@@ -915,12 +929,12 @@
   <div class="wrapper">
     <div class="header">
       <div class="title">
-        Quick Links
-        <span class="title-pill">DigiScot</span>
+        <span id="mainTitleText" class="editable-text">Quick Launch</span>
+        <span class="title-pill editable-text" id="titlePillText">Tabbed Grid</span>
       </div>
-      <!--<div class="subtitle">
+      <div class="subtitle editable-text" id="subtitleText">
         Edit mode shows 10 rows of slots; view mode auto-shrinks to the last link.
-      </div>-->
+      </div>
     </div>
 
     <div class="grid-card">
@@ -958,7 +972,7 @@
         <div class="edit-toggle">
           <label>
             <input type="checkbox" id="editModeToggle" />
-            Enable link editing (drag to reorder or move between slots/tabs)
+            Enable link & tab editing (drag tabs to reorder, edit titles above)
           </label>
         </div>
 
@@ -976,7 +990,7 @@
           <input type="file" id="importConfigInput" accept="application/json" style="display:none" />
         </div>
         <div class="settings-hint">
-          Includes tabs, links and layout (columns, width, tile height, active tab).
+          Includes tabs, links, layout, and custom titles (columns, width, tile height, active tab).
         </div>
       </div>
 
@@ -1033,6 +1047,14 @@
     const STORAGE_KEY_WIDTH = 'ql_pageWidth';
     const STORAGE_KEY_TILE_HEIGHT = 'ql_tileHeight';
 
+    const STORAGE_KEY_TITLE_MAIN = 'ql_title_main';
+    const STORAGE_KEY_TITLE_PILL = 'ql_title_pill';
+    const STORAGE_KEY_TITLE_SUB = 'ql_title_sub';
+
+    const DEFAULT_MAIN_TITLE = 'Quick Launch';
+    const DEFAULT_PILL_TITLE = 'Tabbed Grid';
+    const DEFAULT_SUBTITLE = 'Edit mode shows 10 rows of slots; view mode auto-shrinks to the last link.';
+
     const DEFAULT_STATE = {
       tabs: [
         {
@@ -1069,13 +1091,17 @@
     const linkModalState = {
       mode: 'add',   // 'add' | 'edit'
       tabId: null,
-      index: null,   // slot index (for both add & edit; may be null for "first empty")
+      index: null,
       autoIconUrl: '',
     };
 
     const dragState = {
       tabId: null,
-      fromIndex: null, // slot index
+      fromIndex: null,
+    };
+
+    const tabDragState = {
+      fromId: null,
     };
 
     function deepClone(obj) {
@@ -1157,8 +1183,46 @@
       document.documentElement.style.setProperty('--icon-size', icon + 'px');
     }
 
-    // --- slots helpers ---
+    // --- Title editing helpers ---
+    function loadTitlesFromStorage() {
+      const mainEl = document.getElementById('mainTitleText');
+      const pillEl = document.getElementById('titlePillText');
+      const subEl = document.getElementById('subtitleText');
 
+      const main = localStorage.getItem(STORAGE_KEY_TITLE_MAIN);
+      const pill = localStorage.getItem(STORAGE_KEY_TITLE_PILL);
+      const sub = localStorage.getItem(STORAGE_KEY_TITLE_SUB);
+
+      if (main && main.trim()) mainEl.textContent = main;
+      if (pill && pill.trim()) pillEl.textContent = pill;
+      if (sub && sub.trim()) subEl.textContent = sub;
+    }
+
+    function saveTitlesToStorage() {
+      const mainEl = document.getElementById('mainTitleText');
+      const pillEl = document.getElementById('titlePillText');
+      const subEl = document.getElementById('subtitleText');
+
+      const mainText = (mainEl.textContent || '').trim() || DEFAULT_MAIN_TITLE;
+      const pillText = (pillEl.textContent || '').trim() || DEFAULT_PILL_TITLE;
+      const subText = (subEl.textContent || '').trim() || DEFAULT_SUBTITLE;
+
+      localStorage.setItem(STORAGE_KEY_TITLE_MAIN, mainText);
+      localStorage.setItem(STORAGE_KEY_TITLE_PILL, pillText);
+      localStorage.setItem(STORAGE_KEY_TITLE_SUB, subText);
+    }
+
+    function setTitleEditMode(enabled) {
+      const mainEl = document.getElementById('mainTitleText');
+      const pillEl = document.getElementById('titlePillText');
+      const subEl = document.getElementById('subtitleText');
+
+      [mainEl, pillEl, subEl].forEach((el) => {
+        el.contentEditable = enabled ? 'true' : 'false';
+      });
+    }
+
+    // --- slots helpers ---
     function ensureSlotsForTab(tab) {
       if (!Array.isArray(tab.slots)) {
         const baseLinks = Array.isArray(tab.links) ? tab.links.slice() : [];
@@ -1186,11 +1250,9 @@
       const usedRows = highest >= 0 ? Math.ceil((highest + 1) / cols) : 0;
 
       if (editMode) {
-        // Always show at least 10 rows in edit mode
         return Math.max(10, usedRows || 1);
       }
-      // View mode: shrink to just enough rows to cover last used slot
-      return usedRows || 1; // at least 1 row for layout
+      return usedRows || 1;
     }
 
     function ensureSlotsForRendering(tab, editMode) {
@@ -1262,7 +1324,7 @@
       updateIconPreviewFromInput();
     }
 
-    // Drag-and-drop handlers
+    // Drag-and-drop handlers for tiles
     function onTileDragStart(e, tabId, index) {
       dragState.tabId = tabId;
       dragState.fromIndex = index;
@@ -1295,7 +1357,6 @@
       ensureSlotsForTab(tab);
 
       if (fromTabId !== tabId) {
-        // within-tab tile drop only; cross-tab happens on tab header
         return;
       }
       if (fromIndex === toIndex) return;
@@ -1318,6 +1379,18 @@
       e.currentTarget.classList.remove('dragging', 'drag-over');
       dragState.tabId = null;
       dragState.fromIndex = null;
+    }
+
+    // Tab reordering
+    function moveTab(fromId, toId) {
+      if (!fromId || !toId || fromId === toId) return;
+      const tabs = appState.tabs;
+      const fromIndex = tabs.findIndex((t) => t.id === fromId);
+      const toIndex = tabs.findIndex((t) => t.id === toId);
+      if (fromIndex === -1 || toIndex === -1) return;
+      const [tab] = tabs.splice(fromIndex, 1);
+      tabs.splice(toIndex, 0, tab);
+      saveState();
     }
 
     // Create tile for a non-empty slot
@@ -1413,13 +1486,11 @@
       inner.appendChild(label);
       div.appendChild(inner);
 
-      // Click to add link into this specific slot
       div.addEventListener('click', (e) => {
         e.preventDefault();
         openLinkModal('add', tabId, index);
       });
 
-      // Allow dropping a dragged tile into this empty slot (within same tab)
       div.addEventListener('dragover', (e) => {
         if (dragState.tabId != null) {
           e.preventDefault();
@@ -1436,7 +1507,6 @@
         const fromIndex = dragState.fromIndex;
         if (fromTabId == null || fromIndex == null) return;
         if (fromTabId !== tabId) {
-          // cross-tab via empty slot not supported; use tab header drop
           return;
         }
         const tab = getTabById(tabId);
@@ -1498,7 +1568,6 @@
 
         rowDiv.appendChild(inner);
 
-        // Only show "open row" if the row has at least one link
         if (rowHasLinks) {
           const rowBtn = document.createElement('button');
           rowBtn.className = 'row-open-btn';
@@ -1524,12 +1593,25 @@
         if (tab.id === activeTabId) btn.classList.add('active');
         btn.textContent = tab.name || 'Tab';
         btn.dataset.tabId = tab.id;
+
         btn.addEventListener('click', () => setActiveTab(tab.id));
 
-        // allow dropping a dragged link onto a tab to move it
         if (editMode) {
+          // Drag-reorder tabs
+          btn.draggable = true;
+          btn.addEventListener('dragstart', (e) => {
+            tabDragState.fromId = tab.id;
+            e.dataTransfer.effectAllowed = 'move';
+            btn.classList.add('dragging-tab');
+          });
+          btn.addEventListener('dragend', () => {
+            tabDragState.fromId = null;
+            btn.classList.remove('dragging-tab', 'drag-over');
+          });
+
+          // Handle dragover for both tab reordering and tile-to-tab moves
           btn.addEventListener('dragover', (e) => {
-            if (dragState.tabId != null) {
+            if (tabDragState.fromId || dragState.tabId != null) {
               e.preventDefault();
               btn.classList.add('drag-over');
             }
@@ -1540,9 +1622,19 @@
           });
 
           btn.addEventListener('drop', (e) => {
-            if (dragState.tabId == null || dragState.fromIndex == null) return;
             e.preventDefault();
             btn.classList.remove('drag-over');
+
+            // 1) Tab reordering take precedence
+            if (tabDragState.fromId) {
+              moveTab(tabDragState.fromId, tab.id);
+              tabDragState.fromId = null;
+              renderAll(isEditModeEnabled());
+              return;
+            }
+
+            // 2) Tile dropped on tab: move link between tabs
+            if (dragState.tabId == null || dragState.fromIndex == null) return;
 
             const fromTabId = dragState.tabId;
             const fromIndex = dragState.fromIndex;
@@ -1556,10 +1648,8 @@
             const item = sourceTab.slots[fromIndex];
             if (!item) return;
 
-            // clear source slot
             sourceTab.slots[fromIndex] = null;
 
-            // find first empty slot in target, or extend
             let targetIndex = targetTab.slots.findIndex((s) => !s);
             if (targetIndex === -1) {
               targetIndex = targetTab.slots.length;
@@ -1576,6 +1666,8 @@
             dragState.fromIndex = null;
             renderAll(isEditModeEnabled());
           });
+        } else {
+          btn.draggable = false;
         }
 
         tabsContainer.appendChild(btn);
@@ -1592,7 +1684,6 @@
         if (tab.id === activeTabId) panel.classList.add('active');
         panel.dataset.tabId = tab.id;
 
-        // Tab actions (open all)
         const actionsRow = document.createElement('div');
         actionsRow.className = 'tab-actions-row';
 
@@ -1694,7 +1785,7 @@
       renderTabsManage();
     }
 
-    // Link operations, slot-based
+    // Link operations
     function addLink(tabId, link, slotIndex = null) {
       const tab = getTabById(tabId);
       if (!tab) return;
@@ -1853,13 +1944,20 @@
       const cols = parseInt(localStorage.getItem(STORAGE_KEY_COLUMNS), 10);
       const width = parseInt(localStorage.getItem(STORAGE_KEY_WIDTH), 10);
       const tile = parseInt(localStorage.getItem(STORAGE_KEY_TILE_HEIGHT), 10);
+      const main = localStorage.getItem(STORAGE_KEY_TITLE_MAIN);
+      const pill = localStorage.getItem(STORAGE_KEY_TITLE_PILL);
+      const sub = localStorage.getItem(STORAGE_KEY_TITLE_SUB);
+
       if (!isNaN(cols)) layout.columns = cols;
       if (!isNaN(width)) layout.width = width;
       if (!isNaN(tile)) layout.tileHeight = tile;
       if (activeTabId) layout.activeTab = activeTabId;
+      layout.mainTitle = main || DEFAULT_MAIN_TITLE;
+      layout.pillTitle = pill || DEFAULT_PILL_TITLE;
+      layout.subtitle = sub || DEFAULT_SUBTITLE;
 
       const config = {
-        version: 3,
+        version: 4,
         state: appState,
         layout,
       };
@@ -1885,7 +1983,6 @@
       const tileHeightRange = document.getElementById('tileHeightRange');
       const tileHeightValue = document.getElementById('tileHeightValue');
 
-      // Columns
       const savedColumns = parseInt(localStorage.getItem(STORAGE_KEY_COLUMNS), 10);
       currentColumns = !isNaN(savedColumns)
         ? savedColumns
@@ -1897,7 +1994,6 @@
       }
       document.documentElement.style.setProperty('--columns', currentColumns);
 
-      // Width
       const savedWidth = parseInt(localStorage.getItem(STORAGE_KEY_WIDTH), 10);
       const width = !isNaN(savedWidth)
         ? savedWidth
@@ -1908,7 +2004,6 @@
         pageWidthValue.textContent = width + '%';
       }
 
-      // Tile height
       const savedTileHeight = parseInt(localStorage.getItem(STORAGE_KEY_TILE_HEIGHT), 10);
       const tileHeight = !isNaN(savedTileHeight)
         ? savedTileHeight
@@ -1936,22 +2031,22 @@
 
           if (config.layout) {
             if (typeof config.layout.columns === 'number') {
-              localStorage.setItem(
-                STORAGE_KEY_COLUMNS,
-                String(config.layout.columns)
-              );
+              localStorage.setItem(STORAGE_KEY_COLUMNS, String(config.layout.columns));
             }
             if (typeof config.layout.width === 'number') {
-              localStorage.setItem(
-                STORAGE_KEY_WIDTH,
-                String(config.layout.width)
-              );
+              localStorage.setItem(STORAGE_KEY_WIDTH, String(config.layout.width));
             }
             if (typeof config.layout.tileHeight === 'number') {
-              localStorage.setItem(
-                STORAGE_KEY_TILE_HEIGHT,
-                String(config.layout.tileHeight)
-              );
+              localStorage.setItem(STORAGE_KEY_TILE_HEIGHT, String(config.layout.tileHeight));
+            }
+            if (config.layout.mainTitle) {
+              localStorage.setItem(STORAGE_KEY_TITLE_MAIN, config.layout.mainTitle);
+            }
+            if (config.layout.pillTitle) {
+              localStorage.setItem(STORAGE_KEY_TITLE_PILL, config.layout.pillTitle);
+            }
+            if (config.layout.subtitle) {
+              localStorage.setItem(STORAGE_KEY_TITLE_SUB, config.layout.subtitle);
             }
             if (config.layout.activeTab && getTabById(config.layout.activeTab)) {
               activeTabId = config.layout.activeTab;
@@ -1970,8 +2065,8 @@
           }
 
           applyLayoutFromStorage();
-          // rebuild slots for all tabs from links if needed
           appState.tabs.forEach(ensureSlotsForTab);
+          loadTitlesFromStorage();
           renderAll(isEditModeEnabled());
           event.target.value = '';
           alert('Configuration imported.');
@@ -1991,7 +2086,7 @@
       ensureSlotsForTab(tab);
       linkModalState.mode = mode;
       linkModalState.tabId = tabId;
-      linkModalState.index = index; // may be null for "any empty"
+      linkModalState.index = index;
       linkModalState.autoIconUrl = '';
 
       const backdrop = document.getElementById('linkModalBackdrop');
@@ -2059,19 +2154,28 @@
       const exportBtn = document.getElementById('exportConfigBtn');
       const importInput = document.getElementById('importConfigInput');
 
+      // Titles from storage
+      loadTitlesFromStorage();
+
+      // Save titles on blur
+      const mainEl = document.getElementById('mainTitleText');
+      const pillEl = document.getElementById('titlePillText');
+      const subEl = document.getElementById('subtitleText');
+      [mainEl, pillEl, subEl].forEach((el) => {
+        el.addEventListener('blur', saveTitlesToStorage);
+      });
+
       // Settings panel toggle
       settingsBtn.addEventListener('click', () => {
         const isOpen = settingsPanel.classList.toggle('open');
         settingsBtn.classList.toggle('active', isOpen);
       });
 
-      // Apply layout from storage (sets currentColumns, etc.)
+      // Layout from storage
       applyLayoutFromStorage();
-
-      // Ensure slots exist for all tabs
       appState.tabs.forEach(ensureSlotsForTab);
 
-      // Columns slider behaviour
+      // Columns slider
       columnsRange.addEventListener('input', function () {
         const value = parseInt(this.value, 10);
         if (isNaN(value)) return;
@@ -2082,7 +2186,7 @@
         renderAll(isEditModeEnabled());
       });
 
-      // Page width slider
+      // Page width
       pageWidthRange.addEventListener('input', function () {
         const value = parseInt(this.value, 10);
         if (isNaN(value)) return;
@@ -2091,7 +2195,7 @@
         localStorage.setItem(STORAGE_KEY_WIDTH, String(value));
       });
 
-      // Tile height slider
+      // Tile height
       tileHeightRange.addEventListener('input', function () {
         const value = parseInt(this.value, 10);
         if (isNaN(value)) return;
@@ -2102,8 +2206,16 @@
 
       // Edit mode toggle
       editToggle.addEventListener('change', () => {
-        renderAll(isEditModeEnabled());
+        const enabled = isEditModeEnabled();
+        setTitleEditMode(enabled);
+        if (!enabled) {
+          saveTitlesToStorage();
+        }
+        renderAll(enabled);
       });
+
+      // Initially off
+      setTitleEditMode(false);
 
       // Add tab
       addTabBtn.addEventListener('click', addTab);
@@ -2145,7 +2257,6 @@
         closeLinkModal();
       });
 
-      // Auto icon & preview handlers
       urlInputModal.addEventListener('blur', () => {
         autoDetectIcon(false);
       });
