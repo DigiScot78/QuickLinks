@@ -113,7 +113,7 @@
       z-index: 0;
     }
 
-    /* Top bar: tabs + gear */
+    /* Top bar: tabs + edit + gear */
     .top-bar {
       position: sticky;
       top: 0;
@@ -183,18 +183,18 @@
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.9);
     }
 
-    .settings-btn {
+    .settings-btn,
+    .edit-mode-btn {
       border-radius: 999px;
       border: 1px solid rgba(31, 41, 55, 0.9);
       background: rgba(15, 23, 42, 0.95);
-      width: 34px;
       height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      padding: 0;
-      font-size: 16px;
+      padding: 0 10px;
+      font-size: 0.8rem;
       color: var(--muted);
       transition:
         background var(--transition-fast),
@@ -202,9 +202,17 @@
         transform var(--transition-fast),
         box-shadow var(--transition-fast),
         color var(--transition-fast);
+      white-space: nowrap;
     }
 
-    .settings-btn:hover {
+    .settings-btn {
+      width: 34px;
+      padding: 0;
+      font-size: 16px;
+    }
+
+    .settings-btn:hover,
+    .edit-mode-btn:hover {
       border-color: rgba(56, 189, 248, 0.8);
       color: #e5f3ff;
       box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
@@ -213,6 +221,22 @@
 
     .settings-btn.active {
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.98));
+      color: #f9fafb;
+      border-color: rgba(56, 189, 248, 0.9);
+    }
+
+    .edit-mode-btn {
+      font-weight: 500;
+      gap: 6px;
+      display: inline-flex;
+    }
+
+    .edit-mode-btn span.icon {
+      font-size: 0.9rem;
+    }
+
+    .edit-mode-btn.active {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.3), rgba(15, 23, 42, 0.98));
       color: #f9fafb;
       border-color: rgba(56, 189, 248, 0.9);
     }
@@ -293,19 +317,6 @@
       color: var(--muted);
       opacity: 0.8;
       margin-top: 2px;
-    }
-
-    .edit-toggle {
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .edit-toggle input {
-      accent-color: var(--accent);
     }
 
     /* Tab management */
@@ -940,6 +951,9 @@
     <div class="grid-card">
       <div class="top-bar">
         <div class="tabs" id="tabsContainer"></div>
+        <button class="edit-mode-btn" type="button" id="editModeBtn">
+          <span class="icon">✎</span> <span class="label">Edit</span>
+        </button>
         <button class="settings-btn" type="button" aria-label="Settings" id="settingsBtn">⚙</button>
       </div>
 
@@ -965,15 +979,7 @@
           <div class="settings-value" id="tileHeightValue">90px</div>
         </div>
         <div class="settings-hint">
-          Layout is saved per browser. Edit mode always shows up to 10 rows for easier arranging.
-        </div>
-
-        <!-- Edit mode -->
-        <div class="edit-toggle">
-          <label>
-            <input type="checkbox" id="editModeToggle" />
-            Enable link & tab editing (drag tabs to reorder, edit titles above)
-          </label>
+          Layout is saved per browser. Use the ✎ Edit button above to toggle edit mode for tiles & tabs.
         </div>
 
         <!-- Tab management -->
@@ -1087,6 +1093,7 @@
     let appState = null;
     let activeTabId = null;
     let currentColumns = 6;
+    let editModeEnabled = false;
 
     const linkModalState = {
       mode: 'add',   // 'add' | 'edit'
@@ -1173,8 +1180,7 @@
     }
 
     function isEditModeEnabled() {
-      const toggle = document.getElementById('editModeToggle');
-      return toggle && toggle.checked;
+      return editModeEnabled;
     }
 
     function setTileVars(h) {
@@ -1401,7 +1407,7 @@
         a.classList.add('edit-mode');
         a.href = 'javascript:void(0)';
       } else {
-        a.href = link.url || '#';
+        a.href = link.url || '#'; // same-tab open (per your preference)
       }
 
       const inner = document.createElement('div');
@@ -1607,7 +1613,6 @@
             btn.classList.remove('dragging-tab', 'drag-over');
           });
 
-          // Handle dragover for both tab reordering and tile-to-tab moves
           btn.addEventListener('dragover', (e) => {
             if (tabDragState.fromId || dragState.tabId != null) {
               e.preventDefault();
@@ -1623,7 +1628,6 @@
             e.preventDefault();
             btn.classList.remove('drag-over');
 
-            // 1) Tab reordering take precedence
             if (tabDragState.fromId) {
               moveTab(tabDragState.fromId, tab.id);
               tabDragState.fromId = null;
@@ -1631,7 +1635,6 @@
               return;
             }
 
-            // 2) Tile dropped on tab: move link between tabs
             if (dragState.tabId == null || dragState.fromIndex == null) return;
 
             const fromTabId = dragState.tabId;
@@ -2147,10 +2150,10 @@
       const pageWidthValue = document.getElementById('pageWidthValue');
       const tileHeightRange = document.getElementById('tileHeightRange');
       const tileHeightValue = document.getElementById('tileHeightValue');
-      const editToggle = document.getElementById('editModeToggle');
       const addTabBtn = document.getElementById('addTabBtn');
       const exportBtn = document.getElementById('exportConfigBtn');
       const importInput = document.getElementById('importConfigInput');
+      const editModeBtn = document.getElementById('editModeBtn');
 
       // Titles from storage
       loadTitlesFromStorage();
@@ -2202,14 +2205,16 @@
         localStorage.setItem(STORAGE_KEY_TILE_HEIGHT, String(value));
       });
 
-      // Edit mode toggle
-      editToggle.addEventListener('change', () => {
-        const enabled = isEditModeEnabled();
-        setTitleEditMode(enabled);
-        if (!enabled) {
+      // Edit mode button
+      editModeBtn.addEventListener('click', () => {
+        editModeEnabled = !editModeEnabled;
+        editModeBtn.classList.toggle('active', editModeEnabled);
+        editModeBtn.querySelector('.label').textContent = editModeEnabled ? 'Editing' : 'Edit';
+        setTitleEditMode(editModeEnabled);
+        if (!editModeEnabled) {
           saveTitlesToStorage();
         }
-        renderAll(enabled);
+        renderAll(editModeEnabled);
       });
 
       // Initially off
@@ -2273,4 +2278,3 @@
   </script>
 </body>
 </html>
-
