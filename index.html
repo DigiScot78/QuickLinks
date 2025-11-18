@@ -24,6 +24,18 @@
       --icon-size: 40px;     /* icon size, linked to height */
     }
 
+    /* Light theme overrides */
+    :root[data-theme="light"] {
+      --bg: #e5e7eb;
+      --card-bg: #f9fafb;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.16);
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.15);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -38,6 +50,12 @@
       padding: 20px 0 40px;
       background: radial-gradient(circle at top, #1d283a 0, #020617 55%, #000 100%);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    /* Light theme body background */
+    :root[data-theme="light"] body {
+      background: radial-gradient(circle at top, #ffffff 0, #e5e7eb 60%, #d1d5db 100%);
       color: var(--text);
     }
 
@@ -75,6 +93,10 @@
       color: var(--muted);
     }
 
+    :root[data-theme="light"] .title-pill {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
     .subtitle {
       font-size: 0.85rem;
       color: var(--muted);
@@ -101,6 +123,11 @@
       overflow: hidden;
     }
 
+    :root[data-theme="light"] .grid-card {
+      background: linear-gradient(135deg, #f9fafb 0, #e5e7eb 60%, #dbeafe 100%);
+      border-color: rgba(209, 213, 219, 0.9);
+    }
+
     .grid-card::before {
       content: "";
       position: absolute;
@@ -111,6 +138,12 @@
       opacity: 0.6;
       pointer-events: none;
       z-index: 0;
+    }
+
+    :root[data-theme="light"] .grid-card::before {
+      background:
+        radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.12), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.06), transparent 55%);
     }
 
     /* Top bar: tabs + edit + gear */
@@ -131,6 +164,14 @@
       backdrop-filter: blur(8px);
     }
 
+    :root[data-theme="light"] .top-bar {
+      background: linear-gradient(to bottom,
+        rgba(249, 250, 251, 0.96),
+        rgba(249, 250, 251, 0.92),
+        transparent
+      );
+    }
+
     .tabs {
       flex: 1;
       display: flex;
@@ -141,6 +182,11 @@
       border: 1px solid rgba(31, 41, 55, 0.8);
       overflow-x: auto;
       scrollbar-width: thin;
+    }
+
+    :root[data-theme="light"] .tabs {
+      background: rgba(249, 250, 251, 0.96);
+      border-color: rgba(209, 213, 219, 0.9);
     }
 
     .tab-link {
@@ -170,6 +216,12 @@
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.22), rgba(15, 23, 42, 0.95));
       box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .tab-link.active {
+      color: #111827;
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.18), #eff6ff);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
     }
 
     .tab-link.drag-over {
@@ -205,6 +257,13 @@
       white-space: nowrap;
     }
 
+    :root[data-theme="light"] .settings-btn,
+    :root[data-theme="light"] .edit-mode-btn {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #6b7280;
+    }
+
     .settings-btn {
       width: 34px;
       padding: 0;
@@ -219,10 +278,21 @@
       transform: translateY(-1px);
     }
 
+    :root[data-theme="light"] .settings-btn:hover,
+    :root[data-theme="light"] .edit-mode-btn:hover {
+      color: #0b1120;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    }
+
     .settings-btn.active {
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.98));
       color: #f9fafb;
       border-color: rgba(56, 189, 248, 0.9);
+    }
+
+    :root[data-theme="light"] .settings-btn.active {
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.25), #eff6ff);
+      color: #111827;
     }
 
     .edit-mode-btn {
@@ -239,6 +309,11 @@
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.3), rgba(15, 23, 42, 0.98));
       color: #f9fafb;
       border-color: rgba(56, 189, 248, 0.9);
+    }
+
+    :root[data-theme="light"] .edit-mode-btn.active {
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.28), #eff6ff);
+      color: #111827;
     }
 
     .tab-panels {
@@ -264,6 +339,11 @@
       border: 1px solid rgba(31, 41, 55, 0.9);
       padding: 10px 12px 12px;
       display: none;
+    }
+
+    :root[data-theme="light"] .settings-panel {
+      background: rgba(249, 250, 251, 0.98);
+      border-color: rgba(209, 213, 219, 0.9);
     }
 
     .settings-panel.open {
@@ -319,6 +399,22 @@
       margin-top: 2px;
     }
 
+    .settings-select {
+      flex: 0 0 auto;
+      min-width: 120px;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      font-size: 0.8rem;
+      padding: 4px 8px;
+    }
+
+    :root[data-theme="light"] .settings-select {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+    }
+
     /* Tab management */
     .tabs-manage {
       border-radius: 10px;
@@ -327,6 +423,11 @@
       padding: 6px 8px;
       max-height: 180px;
       overflow-y: auto;
+    }
+
+    :root[data-theme="light"] .tabs-manage {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
     }
 
     .tab-manage-row {
@@ -375,10 +476,20 @@
         opacity var(--transition-fast);
     }
 
+    :root[data-theme="light"] .tab-manage-btn {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #4b5563;
+    }
+
     .tab-manage-btn:hover:not(.disabled) {
       background: rgba(56, 189, 248, 0.25);
       border-color: rgba(56, 189, 248, 0.8);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .tab-manage-btn:hover:not(.disabled) {
+      background: rgba(37, 99, 235, 0.16);
     }
 
     .tab-manage-btn.delete {
@@ -412,10 +523,21 @@
         box-shadow var(--transition-fast);
     }
 
+    :root[data-theme="light"] .add-tab-btn {
+      background: #2563eb;
+      color: #eff6ff;
+      border-color: #1d4ed8;
+    }
+
     .add-tab-btn:hover {
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
       box-shadow: 0 8px 18px rgba(15, 23, 42, 0.85);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .add-tab-btn:hover {
+      background: #1d4ed8;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
     }
 
     /* Backup section */
@@ -465,10 +587,20 @@
       white-space: nowrap;
     }
 
+    :root[data-theme="light"] .open-all-btn {
+      background: #eff6ff;
+      border-color: rgba(191, 219, 254, 0.9);
+    }
+
     .open-all-btn:hover {
       background: rgba(30, 64, 175, 0.7);
       border-color: rgba(59, 130, 246, 0.9);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .open-all-btn:hover {
+      background: #2563eb;
+      color: #eff6ff;
     }
 
     /* Add link row */
@@ -503,10 +635,21 @@
         box-shadow var(--transition-fast);
     }
 
+    :root[data-theme="light"] .add-link-btn {
+      background: #2563eb;
+      border-color: #1d4ed8;
+      color: #eff6ff;
+    }
+
     .add-link-btn:hover {
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
       box-shadow: 0 8px 18px rgba(15, 23, 42, 0.85);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .add-link-btn:hover {
+      background: #1d4ed8;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
     }
 
     /* Grid rows & row open button */
@@ -551,12 +694,24 @@
         color var(--transition-fast);
     }
 
+    :root[data-theme="light"] .row-open-btn {
+      background: #eff6ff;
+      border-color: rgba(191, 219, 254, 0.9);
+      color: #64748b;
+    }
+
     .row-open-btn:hover {
       background: rgba(30, 64, 175, 0.8);
       border-color: rgba(59, 130, 246, 0.9);
       color: #f9fafb;
       box-shadow: 0 8px 16px rgba(15, 23, 42, 0.9);
       transform: translateX(1px);
+    }
+
+    :root[data-theme="light"] .row-open-btn:hover {
+      background: #2563eb;
+      color: #eff6ff;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
     }
 
     /* Tiles */
@@ -581,6 +736,11 @@
       text-align: center;
     }
 
+    :root[data-theme="light"] .shortcut {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+    }
+
     .shortcut-inner {
       display: flex;
       flex-direction: column;
@@ -600,6 +760,11 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+    }
+
+    :root[data-theme="light"] .shortcut-icon-wrap {
+      background: #eef2ff;
+      border-color: rgba(191, 219, 254, 0.9);
     }
 
     .shortcut-icon {
@@ -628,9 +793,19 @@
       color: #f9fafb;
     }
 
+    :root[data-theme="light"] .shortcut:hover {
+      background: linear-gradient(135deg, #ffffff, #e0f2fe);
+      color: #0f172a;
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.15);
+    }
+
     .shortcut:active {
       transform: translateY(0) scale(0.99);
       box-shadow: 0 4px 10px rgba(15, 23, 42, 0.8);
+    }
+
+    :root[data-theme="light"] .shortcut:active {
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
     }
 
     /* Drag feedback */
@@ -652,10 +827,19 @@
       cursor: pointer;
     }
 
+    :root[data-theme="light"] .shortcut.empty-slot {
+      background: #f3f4f6;
+      border-color: rgba(209, 213, 219, 0.9);
+    }
+
     .shortcut.empty-slot:hover {
       border-color: rgba(56, 189, 248, 0.7);
       background: rgba(15, 23, 42, 0.95);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .shortcut.empty-slot:hover {
+      background: #e0f2fe;
     }
 
     .shortcut.empty-slot .shortcut-label {
@@ -704,10 +888,20 @@
         border-color var(--transition-fast);
     }
 
+    :root[data-theme="light"] .tile-btn {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #4b5563;
+    }
+
     .tile-btn:hover {
       background: rgba(56, 189, 248, 0.25);
       border-color: rgba(56, 189, 248, 0.8);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .tile-btn:hover {
+      background: rgba(37, 99, 235, 0.16);
     }
 
     .tile-btn.delete {
@@ -742,6 +936,12 @@
       width: 100%;
       max-width: 420px;
       padding: 14px 16px 16px;
+    }
+
+    :root[data-theme="light"] .modal {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15);
     }
 
     .modal-header {
@@ -781,11 +981,23 @@
         transform var(--transition-fast);
     }
 
+    :root[data-theme="light"] .modal-close-btn {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #6b7280;
+    }
+
     .modal-close-btn:hover {
       background: rgba(30, 64, 175, 0.7);
       border-color: rgba(59, 130, 246, 0.9);
       color: #f9fafb;
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .modal-close-btn:hover {
+      background: #2563eb;
+      color: #eff6ff;
+      border-color: #1d4ed8;
     }
 
     .modal-form {
@@ -816,6 +1028,11 @@
       width: 100%;
     }
 
+    :root[data-theme="light"] .modal-input {
+      background: #ffffff;
+      border-color: rgba(209, 213, 219, 0.9);
+    }
+
     .modal-input:focus {
       border-color: rgba(56, 189, 248, 0.9);
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
@@ -843,11 +1060,22 @@
         border-color var(--transition-fast);
     }
 
+    :root[data-theme="light"] .btn {
+      background: #f9fafb;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #4b5563;
+    }
+
     .btn:hover {
       background: rgba(30, 64, 175, 0.7);
       border-color: rgba(59, 130, 246, 0.9);
       box-shadow: 0 10px 20px rgba(15, 23, 42, 0.9);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="light"] .btn:hover {
+      background: #e5e7eb;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
     }
 
     .btn-primary {
@@ -857,8 +1085,18 @@
       font-weight: 500;
     }
 
+    :root[data-theme="light"] .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #eff6ff;
+      border-color: #1d4ed8;
+    }
+
     .btn-primary:hover {
       background: linear-gradient(135deg, rgba(56, 189, 248, 1), rgba(37, 99, 235, 1));
+    }
+
+    :root[data-theme="light"] .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
     }
 
     /* Icon URL row + preview */
@@ -896,6 +1134,11 @@
       justify-content: center;
       overflow: hidden;
       flex-shrink: 0;
+    }
+
+    :root[data-theme="light"] .icon-preview-frame {
+      background: #eff6ff;
+      border-color: rgba(191, 219, 254, 0.9);
     }
 
     .icon-preview-frame img {
@@ -961,6 +1204,16 @@
       <div class="settings-panel" id="settingsPanel">
         <div class="settings-title">Settings</div>
 
+        <!-- Theme -->
+        <div class="settings-section-title">Theme</div>
+        <div class="settings-row">
+          <div class="settings-label">Color mode</div>
+          <select id="themeSelect" class="settings-select">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+
         <!-- Layout section -->
         <div class="settings-section-title">Layout</div>
         <div class="settings-row">
@@ -996,7 +1249,7 @@
           <input type="file" id="importConfigInput" accept="application/json" style="display:none" />
         </div>
         <div class="settings-hint">
-          Includes tabs, links, layout, and custom titles (columns, width, tile height, active tab).
+          Includes tabs, links, layout, theme, and custom titles (columns, width, tile height, active tab).
         </div>
       </div>
 
@@ -1052,6 +1305,7 @@
     const STORAGE_KEY_ACTIVE_TAB = 'ql_activeTab';
     const STORAGE_KEY_WIDTH = 'ql_pageWidth';
     const STORAGE_KEY_TILE_HEIGHT = 'ql_tileHeight';
+    const STORAGE_KEY_THEME = 'ql_theme';
 
     const STORAGE_KEY_TITLE_MAIN = 'ql_title_main';
     const STORAGE_KEY_TITLE_PILL = 'ql_title_pill';
@@ -1187,6 +1441,16 @@
       document.documentElement.style.setProperty('--tile-height', h + 'px');
       const icon = Math.max(30, Math.min(Math.round(h * 0.45), 64));
       document.documentElement.style.setProperty('--icon-size', icon + 'px');
+    }
+
+    // Theme
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const chosen = theme === 'light' ? 'light' : 'dark';
+      root.setAttribute('data-theme', chosen);
+      localStorage.setItem(STORAGE_KEY_THEME, chosen);
+      const select = document.getElementById('themeSelect');
+      if (select) select.value = chosen;
     }
 
     // --- Title editing helpers ---
@@ -1407,7 +1671,7 @@
         a.classList.add('edit-mode');
         a.href = 'javascript:void(0)';
       } else {
-        a.href = link.url || '#'; // same-tab open (per your preference)
+        a.href = link.url || '#'; // *same-tab* open
       }
 
       const inner = document.createElement('div');
@@ -1948,6 +2212,7 @@
       const main = localStorage.getItem(STORAGE_KEY_TITLE_MAIN);
       const pill = localStorage.getItem(STORAGE_KEY_TITLE_PILL);
       const sub = localStorage.getItem(STORAGE_KEY_TITLE_SUB);
+      const theme = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
 
       if (!isNaN(cols)) layout.columns = cols;
       if (!isNaN(width)) layout.width = width;
@@ -1956,9 +2221,10 @@
       layout.mainTitle = main || DEFAULT_MAIN_TITLE;
       layout.pillTitle = pill || DEFAULT_PILL_TITLE;
       layout.subtitle = sub || DEFAULT_SUBTITLE;
+      layout.theme = theme;
 
       const config = {
-        version: 4,
+        version: 5,
         state: appState,
         layout,
       };
@@ -2030,6 +2296,8 @@
           appState = config.state;
           saveState(appState);
 
+          let layoutTheme = 'dark';
+
           if (config.layout) {
             if (typeof config.layout.columns === 'number') {
               localStorage.setItem(STORAGE_KEY_COLUMNS, String(config.layout.columns));
@@ -2048,6 +2316,10 @@
             }
             if (config.layout.subtitle) {
               localStorage.setItem(STORAGE_KEY_TITLE_SUB, config.layout.subtitle);
+            }
+            if (config.layout.theme) {
+              layoutTheme = config.layout.theme === 'light' ? 'light' : 'dark';
+              localStorage.setItem(STORAGE_KEY_THEME, layoutTheme);
             }
             if (config.layout.activeTab && getTabById(config.layout.activeTab)) {
               activeTabId = config.layout.activeTab;
@@ -2068,6 +2340,7 @@
           applyLayoutFromStorage();
           appState.tabs.forEach(ensureSlotsForTab);
           loadTitlesFromStorage();
+          applyTheme(layoutTheme);
           renderAll(isEditModeEnabled());
           event.target.value = '';
           alert('Configuration imported.');
@@ -2154,6 +2427,17 @@
       const exportBtn = document.getElementById('exportConfigBtn');
       const importInput = document.getElementById('importConfigInput');
       const editModeBtn = document.getElementById('editModeBtn');
+      const themeSelect = document.getElementById('themeSelect');
+
+      // Theme init
+      const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
+      applyTheme(savedTheme);
+      if (themeSelect) {
+        themeSelect.value = savedTheme;
+        themeSelect.addEventListener('change', () => {
+          applyTheme(themeSelect.value);
+        });
+      }
 
       // Titles from storage
       loadTitlesFromStorage();
