@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quick Links</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.16);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --radius: 14px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.8);
+      --transition-fast: 160ms ease-out;
+
+      /* layout + tiles (adjustable) */
+      --columns: 6;          /* tiles per row */
+      --wrapper-width: 80vw; /* main area width */
+      --tile-height: 90px;   /* tile min height */
+      --icon-size: 40px;     /* icon size, linked to height */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 0 40px;
+      background: radial-gradient(circle at top, #1d283a 0, #020617 55%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    .wrapper {
+      width: var(--wrapper-width);  /* controlled by slider */
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      gap: 12px;
+      padding-inline: 4px;
+    }
+
+    .title {
+      font-size: clamp(1.3rem, 2vw, 1.6rem);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-pill {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--muted);
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: right;
+      max-width: 320px;
+    }
+
+    .grid-card {
+      width: 100%;
+      background: radial-gradient(circle at top left, #020617 0, #020617 35%, #050816 100%);
+      border-radius: 22px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      padding: 10px 12px 14px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;   /* clip glow, no scrollbars */
+    }
+
+    .grid-card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.08), transparent 55%);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top bar: tabs + gear */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      background: linear-gradient(to bottom,
+        rgba(15, 23, 42, 0.96),
+        rgba(15, 23, 42, 0.92),
+        transparent
+      );
+      backdrop-filter: blur(8px);
+    }
+
+    .tabs {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 4px;
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab-link {
+      flex: 0 0 auto;
+      border: none;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast),
+        border-color var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .tab-link.active {
+      color: #f9fafb;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.22), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .tab-link.drag-over {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.95));
+    }
+
+    .settings-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      font-size: 16px;
+      color: var(--muted);
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    .settings-btn:hover {
+      border-color: rgba(56, 189, 248, 0.8);
+      color: #e5f3ff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .settings-btn.active {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.98));
+      color: #f9fafb;
+      border-color: rgba(56, 189, 248, 0.9);
+    }
+
+    .tab-panels {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Settings panel */
+    .settings-panel {
+      position: relative;
+      z-index: 3;
+      margin-bottom: 10px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 10px 12px 12px;
+      display: none;
+    }
+
+    .settings-panel.open {
+      display: block;
+    }
+
+    .settings-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .settings-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: var(--muted);
+      margin-top: 10px;
+      margin-bottom: 6px;
+      opacity: 0.85;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    .settings-label {
+      min-width: 120px;
+      color: var(--muted);
+    }
+
+    .settings-row input[type="range"] {
+      flex: 1;
+    }
+
+    .settings-value {
+      width: 3em;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+    }
+
+    .settings-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .edit-toggle {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .edit-toggle input {
+      accent-color: var(--accent);
+    }
+
+    /* Tab management */
+    .tabs-manage {
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      padding: 6px 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .tab-manage-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.8rem;
+      padding: 4px 2px;
+    }
+
+    .tab-manage-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .tab-manage-name span {
+      opacity: 0.85;
+    }
+
+    .tab-manage-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .tab-manage-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 11px;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        border-color var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    .tab-manage-btn:hover:not(.disabled) {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: rgba(56, 189, 248, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .tab-manage-btn.delete {
+      border-color: rgba(248, 113, 113, 0.7);
+    }
+
+    .tab-manage-btn.delete:hover:not(.disabled) {
+      background: rgba(248, 113, 113, 0.3);
+    }
+
+    .tab-manage-btn.disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .add-tab-btn {
+      margin-top: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.8);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      color: #e5f3ff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .add-tab-btn:hover {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.85);
+      transform: translateY(-1px);
+    }
+
+    /* Backup section */
+    .settings-row-backup {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+    }
+
+    .settings-row-backup .settings-label {
+      min-width: 120px;
+    }
+
+    /* Tab actions (open all) */
+    .tab-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .tab-actions-label {
+      opacity: 0.9;
+    }
+
+    .open-all-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .open-all-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: var(--text);
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        border-color var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .open-all-btn:hover {
+      background: rgba(30, 64, 175, 0.7);
+      border-color: rgba(59, 130, 246, 0.9);
+      transform: translateY(-1px);
+    }
+
+    /* Add link row */
+    .add-link-row {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .add-link-row.visible {
+      display: flex;
+    }
+
+    .add-link-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.8);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      color: #e5f3ff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .add-link-btn:hover {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.85);
+      transform: translateY(-1px);
+    }
+
+    /* Grid rows & row open button */
+    .grid-rows-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .grid-row {
+      display: flex;
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .grid-row-inner {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .row-open-btn {
+      align-self: stretch;
+      width: 26px;
+      min-width: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    .row-open-btn:hover {
+      background: rgba(30, 64, 175, 0.8);
+      border-color: rgba(59, 130, 246, 0.9);
+      color: #f9fafb;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.9);
+      transform: translateX(1px);
+    }
+
+    /* Tiles */
+    .shortcut {
+      position: relative;
+      display: block;
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: 0 0 0 rgba(56, 189, 248, 0);
+      backdrop-filter: blur(8px);
+      padding: 10px 8px 8px;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        color var(--transition-fast),
+        opacity 120ms ease-out;
+      text-align: center;
+    }
+
+    .shortcut-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      min-height: var(--tile-height); /* adjustable */
+    }
+
+    .shortcut-icon-wrap {
+      width: var(--icon-size);
+      height: var(--icon-size);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .shortcut-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .shortcut-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      line-height: 1.2;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.93;
+    }
+
+    .shortcut:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: rgba(56, 189, 248, 0.65);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(8, 47, 73, 0.96));
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+    }
+
+    .shortcut:active {
+      transform: translateY(0) scale(0.99);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.8);
+    }
+
+    /* Drag feedback */
+    .shortcut.dragging {
+      opacity: 0.4;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+    }
+
+    .shortcut.drag-over {
+      outline: 1px dashed rgba(56, 189, 248, 0.7);
+      outline-offset: 2px;
+    }
+
+    /* Empty slot in edit mode */
+    .shortcut.empty-slot {
+      border-style: dashed;
+      border-color: rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.85);
+      cursor: pointer;
+    }
+
+    .shortcut.empty-slot:hover {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .shortcut.empty-slot .shortcut-label {
+      opacity: 0.6;
+    }
+
+    /* Invisible placeholder for view mode to keep alignment */
+    .shortcut.empty-view {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Edit mode controls on tiles */
+    .shortcut.edit-mode {
+      cursor: default;
+    }
+
+    .tile-actions {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: none;
+      gap: 4px;
+    }
+
+    .shortcut.edit-mode .tile-actions {
+      display: flex;
+    }
+
+    .tile-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 11px;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .tile-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: rgba(56, 189, 248, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .tile-btn.delete {
+      border-color: rgba(248, 113, 113, 0.7);
+    }
+
+    .tile-btn.delete:hover {
+      background: rgba(248, 113, 113, 0.3);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+      width: 100%;
+      max-width: 420px;
+      padding: 14px 16px 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .modal-subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .modal-close-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+      color: var(--muted);
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(30, 64, 175, 0.7);
+      border-color: rgba(59, 130, 246, 0.9);
+      color: #f9fafb;
+      transform: translateY(-1px);
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    .modal-label {
+      color: var(--muted);
+    }
+
+    .modal-input {
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.98);
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      color: var(--text);
+      outline: none;
+      width: 100%;
+    }
+
+    .modal-input:focus {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
+    }
+
+    .modal-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text);
+      transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .btn:hover {
+      background: rgba(30, 64, 175, 0.7);
+      border-color: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      border-color: rgba(56, 189, 248, 0.9);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(59, 130, 246, 0.95));
+      color: #0b1220;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 1), rgba(37, 99, 235, 1));
+    }
+
+    /* Icon URL row + preview */
+    .icon-input-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-input-row .modal-input {
+      flex: 1;
+    }
+
+    .icon-auto-btn {
+      padding-inline: 8px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .icon-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .icon-preview-frame {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .icon-preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 120ms ease-out;
+    }
+
+    .icon-preview-frame.has-icon img {
+      opacity: 1;
+    }
+
+    .icon-preview-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.9;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px 0 30px;
+      }
+
+      .grid-card {
+        padding: 10px 10px 12px;
+      }
+
+      .shortcut-label {
+        font-size: 0.76rem;
+      }
+
+      .subtitle {
+        max-width: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <div class="title">
+        Quick Links
+        <span class="title-pill">DigiScot</span>
+      </div>
+      <!--<div class="subtitle">
+        Edit mode shows 10 rows of slots; view mode auto-shrinks to the last link.
+      </div>-->
+    </div>
+
+    <div class="grid-card">
+      <div class="top-bar">
+        <div class="tabs" id="tabsContainer"></div>
+        <button class="settings-btn" type="button" aria-label="Settings" id="settingsBtn">⚙</button>
+      </div>
+
+      <!-- Settings panel -->
+      <div class="settings-panel" id="settingsPanel">
+        <div class="settings-title">Settings</div>
+
+        <!-- Layout section -->
+        <div class="settings-section-title">Layout</div>
+        <div class="settings-row">
+          <div class="settings-label">Tiles per row</div>
+          <input id="columnsRange" type="range" min="3" max="12" step="1" value="6" />
+          <div class="settings-value" id="columnsValue">6</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Page width</div>
+          <input id="pageWidthRange" type="range" min="30" max="100" step="1" value="80" />
+          <div class="settings-value" id="pageWidthValue">80%</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Tile height</div>
+          <input id="tileHeightRange" type="range" min="70" max="150" step="5" value="90" />
+          <div class="settings-value" id="tileHeightValue">90px</div>
+        </div>
+        <div class="settings-hint">
+          Layout is saved per browser. Edit mode always shows up to 10 rows for easier arranging.
+        </div>
+
+        <!-- Edit mode -->
+        <div class="edit-toggle">
+          <label>
+            <input type="checkbox" id="editModeToggle" />
+            Enable link editing (drag to reorder or move between slots/tabs)
+          </label>
+        </div>
+
+        <!-- Tab management -->
+        <div class="settings-section-title">Tabs</div>
+        <div class="tabs-manage" id="tabsManage"></div>
+        <button class="add-tab-btn" type="button" id="addTabBtn">➕ Add tab</button>
+
+        <!-- Backup -->
+        <div class="settings-section-title">Backup</div>
+        <div class="settings-row-backup">
+          <div class="settings-label">Configuration</div>
+          <button type="button" class="btn" id="exportConfigBtn">Export</button>
+          <label for="importConfigInput" class="btn">Import</label>
+          <input type="file" id="importConfigInput" accept="application/json" style="display:none" />
+        </div>
+        <div class="settings-hint">
+          Includes tabs, links and layout (columns, width, tile height, active tab).
+        </div>
+      </div>
+
+      <!-- Tab panels rendered here -->
+      <div class="tab-panels" id="tabPanels"></div>
+    </div>
+  </div>
+
+  <!-- Link modal -->
+  <div class="modal-backdrop" id="linkModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="linkModalTitle">
+      <div class="modal-header">
+        <div class="modal-title" id="linkModalTitle">Add link</div>
+        <button class="modal-close-btn" type="button" id="linkModalClose">×</button>
+      </div>
+      <div class="modal-subtitle" id="linkModalSubtitle"></div>
+      <form class="modal-form" id="linkModalForm">
+        <div class="modal-row">
+          <label class="modal-label" for="linkLabel">Label</label>
+          <input class="modal-input" id="linkLabel" required />
+        </div>
+        <div class="modal-row">
+          <label class="modal-label" for="linkUrl">URL</label>
+          <input class="modal-input" id="linkUrl" placeholder="https://..." required />
+        </div>
+        <div class="modal-row">
+          <label class="modal-label" for="linkIcon">Icon URL (optional)</label>
+          <div class="icon-input-row">
+            <input class="modal-input" id="linkIcon" placeholder="Auto or custom icon URL" />
+            <button type="button" class="btn icon-auto-btn" id="autoIconBtn">Auto icon</button>
+          </div>
+          <div class="icon-preview-row">
+            <div class="icon-preview-frame" id="iconPreviewFrame">
+              <img id="iconPreviewImg" alt="Icon preview" />
+            </div>
+            <div class="icon-preview-hint">
+              Uses DuckDuckGo’s icon service from the URL’s domain by default. You can override with your own image URL.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" id="linkModalCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY_STATE = 'ql_state_tabs_v1';
+    const OLD_STORAGE_KEY_LINKS = 'ql_links_v1';
+    const STORAGE_KEY_COLUMNS = 'ql_columns';
+    const STORAGE_KEY_ACTIVE_TAB = 'ql_activeTab';
+    const STORAGE_KEY_WIDTH = 'ql_pageWidth';
+    const STORAGE_KEY_TILE_HEIGHT = 'ql_tileHeight';
+
+    const DEFAULT_STATE = {
+      tabs: [
+        {
+          id: 'work',
+          name: 'Work',
+          links: [
+            { label: 'Gmail',        url: 'https://mail.google.com',        icon: 'https://icons.duckduckgo.com/ip3/mail.google.com.ico' },
+            { label: 'Calendar',     url: 'https://calendar.google.com',    icon: 'https://icons.duckduckgo.com/ip3/calendar.google.com.ico' },
+            { label: 'Drive',        url: 'https://drive.google.com',       icon: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico' },
+            { label: 'GitHub',       url: 'https://github.com',             icon: 'https://icons.duckduckgo.com/ip3/github.com.ico' },
+            { label: 'Azure Portal', url: 'https://portal.azure.com',       icon: 'https://icons.duckduckgo.com/ip3/portal.azure.com.ico' },
+            { label: 'AWS Console',  url: 'https://console.aws.amazon.com', icon: 'https://icons.duckduckgo.com/ip3/aws.amazon.com.ico' },
+          ],
+        },
+        {
+          id: 'personal',
+          name: 'Personal',
+          links: [
+            { label: 'YouTube',  url: 'https://www.youtube.com',        icon: 'https://icons.duckduckgo.com/ip3/www.youtube.com.ico' },
+            { label: 'Reddit',   url: 'https://www.reddit.com',         icon: 'https://icons.duckduckgo.com/ip3/www.reddit.com.ico' },
+            { label: 'BBC News', url: 'https://www.bbc.co.uk/news',     icon: 'https://icons.duckduckgo.com/ip3/www.bbc.co.uk.ico' },
+            { label: 'OpenAI',   url: 'https://openai.com',             icon: 'https://icons.duckduckgo.com/ip3/openai.com.ico' },
+            { label: 'Amazon UK',url: 'https://www.amazon.co.uk',       icon: 'https://icons.duckduckgo.com/ip3/www.amazon.co.uk.ico' },
+            { label: 'Steam',    url: 'https://store.steampowered.com', icon: 'https://icons.duckduckgo.com/ip3/store.steampowered.com.ico' },
+          ],
+        },
+      ],
+    };
+
+    let appState = null;
+    let activeTabId = null;
+    let currentColumns = 6;
+
+    const linkModalState = {
+      mode: 'add',   // 'add' | 'edit'
+      tabId: null,
+      index: null,   // slot index (for both add & edit; may be null for "first empty")
+      autoIconUrl: '',
+    };
+
+    const dragState = {
+      tabId: null,
+      fromIndex: null, // slot index
+    };
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STATE);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load new state, trying old format...', e);
+      }
+
+      // migrate old simple format if present
+      try {
+        const oldRaw = localStorage.getItem(OLD_STORAGE_KEY_LINKS);
+        if (oldRaw) {
+          const oldParsed = JSON.parse(oldRaw);
+          const tabs = [];
+          for (const key of Object.keys(oldParsed)) {
+            const name = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+            tabs.push({
+              id: key,
+              name,
+              links: Array.isArray(oldParsed[key]) ? oldParsed[key] : [],
+            });
+          }
+          if (tabs.length > 0) {
+            const state = { tabs };
+            saveState(state);
+            return state;
+          }
+        }
+      } catch (e) {
+        console.warn('Old data migration failed, using defaults.', e);
+      }
+
+      const def = deepClone(DEFAULT_STATE);
+      saveState(def);
+      return def;
+    }
+
+    function saveState(state = appState) {
+      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(state));
+    }
+
+    function getTabById(tabId) {
+      return appState.tabs.find((t) => t.id === tabId) || null;
+    }
+
+    function ensureActiveTab() {
+      if (!appState.tabs.length) return;
+      if (!activeTabId || !getTabById(activeTabId)) {
+        activeTabId = appState.tabs[0].id;
+      }
+    }
+
+    function setActiveTab(tabId) {
+      if (!getTabById(tabId)) return;
+      activeTabId = tabId;
+      localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, tabId);
+      renderAll(isEditModeEnabled());
+    }
+
+    function isEditModeEnabled() {
+      const toggle = document.getElementById('editModeToggle');
+      return toggle && toggle.checked;
+    }
+
+    function setTileVars(h) {
+      document.documentElement.style.setProperty('--tile-height', h + 'px');
+      const icon = Math.max(30, Math.min(Math.round(h * 0.45), 64));
+      document.documentElement.style.setProperty('--icon-size', icon + 'px');
+    }
+
+    // --- slots helpers ---
+
+    function ensureSlotsForTab(tab) {
+      if (!Array.isArray(tab.slots)) {
+        const baseLinks = Array.isArray(tab.links) ? tab.links.slice() : [];
+        tab.slots = baseLinks.slice(); // one slot per link to start with
+      }
+    }
+
+    function syncLinks(tab) {
+      tab.links = (tab.slots || []).filter((x) => x);
+    }
+
+    function getHighestUsedIndex(tab) {
+      ensureSlotsForTab(tab);
+      const slots = tab.slots;
+      let highest = -1;
+      for (let i = 0; i < slots.length; i++) {
+        if (slots[i]) highest = i;
+      }
+      return highest;
+    }
+
+    function getRowCountForTab(tab, editMode) {
+      const cols = currentColumns || 6;
+      const highest = getHighestUsedIndex(tab);
+      const usedRows = highest >= 0 ? Math.ceil((highest + 1) / cols) : 0;
+
+      if (editMode) {
+        // Always show at least 10 rows in edit mode
+        return Math.max(10, usedRows || 1);
+      }
+      // View mode: shrink to just enough rows to cover last used slot
+      return usedRows || 1; // at least 1 row for layout
+    }
+
+    function ensureSlotsForRendering(tab, editMode) {
+      ensureSlotsForTab(tab);
+      const rows = getRowCountForTab(tab, editMode);
+      const cols = currentColumns || 6;
+      const required = rows * cols;
+      while (tab.slots.length < required) {
+        tab.slots.push(null);
+      }
+    }
+
+    // --- favicon helpers ---
+    function extractHostnameFromUrl(rawUrl) {
+      if (!rawUrl) return '';
+      let url = rawUrl.trim();
+      try {
+        if (!/^https?:\/\//i.test(url)) {
+          url = 'https://' + url;
+        }
+        const u = new URL(url);
+        return u.hostname || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function buildAutoIconUrl(hostname) {
+      if (!hostname) return '';
+      return 'https://icons.duckduckgo.com/ip3/' + hostname + '.ico';
+    }
+
+    function updateIconPreviewFromInput() {
+      const iconInput = document.getElementById('linkIcon');
+      const frame = document.getElementById('iconPreviewFrame');
+      const img = document.getElementById('iconPreviewImg');
+      const url = iconInput.value.trim();
+      if (!url) {
+        frame.classList.remove('has-icon');
+        img.removeAttribute('src');
+        return;
+      }
+      img.onload = function () {
+        frame.classList.add('has-icon');
+      };
+      img.onerror = function () {
+        frame.classList.remove('has-icon');
+      };
+      img.src = url;
+    }
+
+    function autoDetectIcon(forceOverride) {
+      const urlInput = document.getElementById('linkUrl');
+      const iconInput = document.getElementById('linkIcon');
+      const hostname = extractHostnameFromUrl(urlInput.value);
+      if (!hostname) {
+        alert('Please enter a valid URL first so the icon can be detected.');
+        return;
+      }
+      const autoUrl = buildAutoIconUrl(hostname);
+      if (
+        forceOverride ||
+        !iconInput.value.trim() ||
+        iconInput.value.trim() === linkModalState.autoIconUrl
+      ) {
+        iconInput.value = autoUrl;
+      }
+      linkModalState.autoIconUrl = autoUrl;
+      updateIconPreviewFromInput();
+    }
+
+    // Drag-and-drop handlers
+    function onTileDragStart(e, tabId, index) {
+      dragState.tabId = tabId;
+      dragState.fromIndex = index;
+      e.dataTransfer.effectAllowed = 'move';
+      e.currentTarget.classList.add('dragging');
+    }
+
+    function onTileDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const el = e.currentTarget;
+      if (!el.classList.contains('drag-over')) {
+        el.classList.add('drag-over');
+      }
+    }
+
+    function onTileDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function onTileDrop(e, tabId, toIndex) {
+      e.preventDefault();
+      const el = e.currentTarget;
+      el.classList.remove('drag-over');
+      const { tabId: fromTabId, fromIndex } = dragState;
+      if (fromTabId == null || fromIndex == null) return;
+
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+
+      if (fromTabId !== tabId) {
+        // within-tab tile drop only; cross-tab happens on tab header
+        return;
+      }
+      if (fromIndex === toIndex) return;
+
+      const slots = tab.slots;
+      if (slots[fromIndex] === undefined || slots[toIndex] === undefined) return;
+
+      const tmp = slots[fromIndex];
+      slots[fromIndex] = slots[toIndex];
+      slots[toIndex] = tmp;
+
+      syncLinks(tab);
+      saveState();
+      dragState.tabId = null;
+      dragState.fromIndex = null;
+      renderAll(isEditModeEnabled());
+    }
+
+    function onTileDragEnd(e) {
+      e.currentTarget.classList.remove('dragging', 'drag-over');
+      dragState.tabId = null;
+      dragState.fromIndex = null;
+    }
+
+    // Create tile for a non-empty slot
+    function createTile(link, tabId, index, editMode) {
+      const a = document.createElement('a');
+      a.className = 'shortcut';
+      if (editMode) {
+        a.classList.add('edit-mode');
+        a.href = 'javascript:void(0)';
+      } else {
+        a.href = link.url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+
+      const inner = document.createElement('div');
+      inner.className = 'shortcut-inner';
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'shortcut-icon-wrap';
+      if (link.icon) {
+        const img = document.createElement('img');
+        img.className = 'shortcut-icon';
+        img.src = link.icon;
+        img.alt = link.label || 'Icon';
+        iconWrap.appendChild(img);
+      }
+
+      const label = document.createElement('div');
+      label.className = 'shortcut-label';
+      label.textContent = link.label || 'Untitled';
+
+      inner.appendChild(iconWrap);
+      inner.appendChild(label);
+      a.appendChild(inner);
+
+      const actions = document.createElement('div');
+      actions.className = 'tile-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'tile-btn edit';
+      editBtn.type = 'button';
+      editBtn.textContent = '✎';
+      editBtn.title = 'Edit link';
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openLinkModal('edit', tabId, index);
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'tile-btn delete';
+      delBtn.type = 'button';
+      delBtn.textContent = '×';
+      delBtn.title = 'Delete link';
+      delBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteLink(tabId, index);
+      });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      a.appendChild(actions);
+
+      if (editMode) {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          openLinkModal('edit', tabId, index);
+        });
+        a.draggable = true;
+        a.addEventListener('dragstart', (ev) => onTileDragStart(ev, tabId, index));
+        a.addEventListener('dragover', onTileDragOver);
+        a.addEventListener('dragleave', onTileDragLeave);
+        a.addEventListener('drop', (ev) => onTileDrop(ev, tabId, index));
+        a.addEventListener('dragend', onTileDragEnd);
+      } else {
+        a.draggable = false;
+      }
+
+      return a;
+    }
+
+    function createEmptySlot(tabId, index) {
+      const div = document.createElement('div');
+      div.className = 'shortcut empty-slot';
+
+      const inner = document.createElement('div');
+      inner.className = 'shortcut-inner';
+      const label = document.createElement('div');
+      label.className = 'shortcut-label';
+      label.textContent = '+ Empty';
+      inner.appendChild(label);
+      div.appendChild(inner);
+
+      // Click to add link into this specific slot
+      div.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLinkModal('add', tabId, index);
+      });
+
+      // Allow dropping a dragged tile into this empty slot (within same tab)
+      div.addEventListener('dragover', (e) => {
+        if (dragState.tabId != null) {
+          e.preventDefault();
+          div.classList.add('drag-over');
+        }
+      });
+      div.addEventListener('dragleave', () => {
+        div.classList.remove('drag-over');
+      });
+      div.addEventListener('drop', (e) => {
+        e.preventDefault();
+        div.classList.remove('drag-over');
+        const fromTabId = dragState.tabId;
+        const fromIndex = dragState.fromIndex;
+        if (fromTabId == null || fromIndex == null) return;
+        if (fromTabId !== tabId) {
+          // cross-tab via empty slot not supported; use tab header drop
+          return;
+        }
+        const tab = getTabById(tabId);
+        if (!tab) return;
+        ensureSlotsForTab(tab);
+        const slots = tab.slots;
+        if (!slots[fromIndex] || slots[index] === undefined) return;
+
+        const tmp = slots[fromIndex];
+        slots[fromIndex] = slots[index];
+        slots[index] = tmp;
+
+        syncLinks(tab);
+        saveState();
+        dragState.tabId = null;
+        dragState.fromIndex = null;
+        renderAll(isEditModeEnabled());
+      });
+
+      return div;
+    }
+
+    function renderTabLinks(tab, editMode, containerEl) {
+      ensureSlotsForRendering(tab, editMode);
+      const cols = currentColumns || 6;
+      const slots = tab.slots || [];
+      const rowCount = getRowCountForTab(tab, editMode);
+      const totalSlots = rowCount * cols;
+
+      containerEl.innerHTML = '';
+
+      for (let row = 0; row < rowCount; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'grid-row';
+
+        const inner = document.createElement('div');
+        inner.className = 'grid-row-inner';
+
+        const startIndex = row * cols;
+        const endIndex = Math.min(startIndex + cols, totalSlots);
+        let rowHasLinks = false;
+
+        for (let i = startIndex; i < endIndex; i++) {
+          const link = slots[i];
+          if (link) {
+            rowHasLinks = true;
+            inner.appendChild(createTile(link, tab.id, i, editMode));
+          } else if (editMode) {
+            inner.appendChild(createEmptySlot(tab.id, i));
+          } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'shortcut empty-view';
+            const phInner = document.createElement('div');
+            phInner.className = 'shortcut-inner';
+            placeholder.appendChild(phInner);
+            inner.appendChild(placeholder);
+          }
+        }
+
+        rowDiv.appendChild(inner);
+
+        // Only show "open row" if the row has at least one link
+        if (rowHasLinks) {
+          const rowBtn = document.createElement('button');
+          rowBtn.className = 'row-open-btn';
+          rowBtn.type = 'button';
+          rowBtn.title = 'Open all links in this row';
+          rowBtn.textContent = '⧉';
+          rowBtn.addEventListener('click', () => openRowLinks(tab.id, row));
+          rowDiv.appendChild(rowBtn);
+        }
+
+        containerEl.appendChild(rowDiv);
+      }
+    }
+
+    function renderTabsStrip() {
+      const tabsContainer = document.getElementById('tabsContainer');
+      tabsContainer.innerHTML = '';
+      const editMode = isEditModeEnabled();
+
+      appState.tabs.forEach((tab) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-link';
+        if (tab.id === activeTabId) btn.classList.add('active');
+        btn.textContent = tab.name || 'Tab';
+        btn.dataset.tabId = tab.id;
+        btn.addEventListener('click', () => setActiveTab(tab.id));
+
+        // allow dropping a dragged link onto a tab to move it
+        if (editMode) {
+          btn.addEventListener('dragover', (e) => {
+            if (dragState.tabId != null) {
+              e.preventDefault();
+              btn.classList.add('drag-over');
+            }
+          });
+
+          btn.addEventListener('dragleave', () => {
+            btn.classList.remove('drag-over');
+          });
+
+          btn.addEventListener('drop', (e) => {
+            if (dragState.tabId == null || dragState.fromIndex == null) return;
+            e.preventDefault();
+            btn.classList.remove('drag-over');
+
+            const fromTabId = dragState.tabId;
+            const fromIndex = dragState.fromIndex;
+            const sourceTab = getTabById(fromTabId);
+            const targetTab = tab;
+            if (!sourceTab || !targetTab) return;
+
+            ensureSlotsForTab(sourceTab);
+            ensureSlotsForTab(targetTab);
+
+            const item = sourceTab.slots[fromIndex];
+            if (!item) return;
+
+            // clear source slot
+            sourceTab.slots[fromIndex] = null;
+
+            // find first empty slot in target, or extend
+            let targetIndex = targetTab.slots.findIndex((s) => !s);
+            if (targetIndex === -1) {
+              targetIndex = targetTab.slots.length;
+              targetTab.slots.push(item);
+            } else {
+              targetTab.slots[targetIndex] = item;
+            }
+
+            syncLinks(sourceTab);
+            syncLinks(targetTab);
+            saveState();
+
+            dragState.tabId = null;
+            dragState.fromIndex = null;
+            renderAll(isEditModeEnabled());
+          });
+        }
+
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    function renderTabsPanels(editMode) {
+      const tabPanels = document.getElementById('tabPanels');
+      tabPanels.innerHTML = '';
+
+      appState.tabs.forEach((tab) => {
+        const panel = document.createElement('div');
+        panel.className = 'tab-panel';
+        if (tab.id === activeTabId) panel.classList.add('active');
+        panel.dataset.tabId = tab.id;
+
+        // Tab actions (open all)
+        const actionsRow = document.createElement('div');
+        actionsRow.className = 'tab-actions-row';
+
+        const actionsLabel = document.createElement('span');
+        actionsLabel.className = 'tab-actions-label';
+        actionsLabel.textContent = 'Bulk actions:';
+
+        const buttonsWrap = document.createElement('div');
+        buttonsWrap.className = 'open-all-buttons';
+
+        const btnTabs = document.createElement('button');
+        btnTabs.type = 'button';
+        btnTabs.className = 'open-all-btn';
+        btnTabs.textContent = 'Open all (tabs)';
+        btnTabs.addEventListener('click', () => openAllLinks(tab.id));
+
+        buttonsWrap.appendChild(btnTabs);
+        actionsRow.appendChild(actionsLabel);
+        actionsRow.appendChild(buttonsWrap);
+
+        const addRow = document.createElement('div');
+        addRow.className = 'add-link-row';
+        addRow.dataset.tabRow = tab.id;
+
+        const span = document.createElement('span');
+        span.textContent = 'Manage links for this tab.';
+        const btn = document.createElement('button');
+        btn.className = 'add-link-btn';
+        btn.type = 'button';
+        btn.dataset.tabId = tab.id;
+        btn.textContent = '➕ Add link';
+        btn.addEventListener('click', () => openLinkModal('add', tab.id, null));
+
+        addRow.appendChild(span);
+        addRow.appendChild(btn);
+
+        const rowsContainer = document.createElement('div');
+        rowsContainer.className = 'grid-rows-container';
+
+        panel.appendChild(actionsRow);
+        panel.appendChild(addRow);
+        panel.appendChild(rowsContainer);
+        tabPanels.appendChild(panel);
+
+        renderTabLinks(tab, editMode, rowsContainer);
+
+        addRow.classList.toggle('visible', editMode);
+      });
+    }
+
+    function renderTabsManage() {
+      const manage = document.getElementById('tabsManage');
+      manage.innerHTML = '';
+      const numTabs = appState.tabs.length;
+
+      appState.tabs.forEach((tab) => {
+        const row = document.createElement('div');
+        row.className = 'tab-manage-row';
+
+        const nameSpan = document.createElement('div');
+        nameSpan.className = 'tab-manage-name';
+        const badge = tab.id === activeTabId ? ' (active)' : '';
+        nameSpan.innerHTML = `<span>${tab.name || 'Tab'}${badge}</span>`;
+
+        const actions = document.createElement('div');
+        actions.className = 'tab-manage-actions';
+
+        const renameBtn = document.createElement('button');
+        renameBtn.className = 'tab-manage-btn rename';
+        renameBtn.type = 'button';
+        renameBtn.textContent = '✎';
+        renameBtn.title = 'Rename tab';
+        renameBtn.addEventListener('click', () => renameTab(tab.id));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'tab-manage-btn delete';
+        deleteBtn.type = 'button';
+        deleteBtn.textContent = '×';
+        deleteBtn.title = 'Delete tab';
+        if (numTabs <= 1) {
+          deleteBtn.classList.add('disabled');
+        } else {
+          deleteBtn.addEventListener('click', () => removeTab(tab.id));
+        }
+
+        actions.appendChild(renameBtn);
+        actions.appendChild(deleteBtn);
+
+        row.appendChild(nameSpan);
+        row.appendChild(actions);
+        manage.appendChild(row);
+      });
+    }
+
+    function renderAll(editMode) {
+      ensureActiveTab();
+      renderTabsStrip();
+      renderTabsPanels(editMode);
+      renderTabsManage();
+    }
+
+    // Link operations, slot-based
+    function addLink(tabId, link, slotIndex = null) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+
+      let targetIndex = slotIndex;
+      if (targetIndex == null || tab.slots[targetIndex] != null) {
+        targetIndex = tab.slots.findIndex((s) => !s);
+        if (targetIndex === -1) {
+          targetIndex = tab.slots.length;
+          tab.slots.push(null);
+        }
+      }
+
+      tab.slots[targetIndex] = link;
+      syncLinks(tab);
+      saveState();
+      renderAll(isEditModeEnabled());
+    }
+
+    function updateLink(tabId, index, link) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+      if (tab.slots[index] === undefined) return;
+      tab.slots[index] = link;
+      syncLinks(tab);
+      saveState();
+      renderAll(isEditModeEnabled());
+    }
+
+    function deleteLink(tabId, index) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+      const link = tab.slots[index];
+      if (!link) return;
+      const name = link.label || 'this link';
+      if (!confirm(`Delete "${name}"?`)) return;
+      tab.slots[index] = null;
+      syncLinks(tab);
+      saveState();
+      renderAll(isEditModeEnabled());
+    }
+
+    // Tab operations
+    function slugify(name) {
+      const base =
+        name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') ||
+        'tab';
+      let id = base;
+      let i = 2;
+      while (appState.tabs.some((t) => t.id === id)) {
+        id = `${base}-${i++}`;
+      }
+      return id;
+    }
+
+    function addTab() {
+      const name = prompt('New tab name:');
+      if (!name) return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const id = slugify(trimmed);
+      appState.tabs.push({
+        id,
+        name: trimmed,
+        links: [],
+        slots: [],
+      });
+      saveState();
+      setActiveTab(id);
+    }
+
+    function renameTab(tabId) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      const name = prompt('Rename tab:', tab.name || '');
+      if (name === null) return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      tab.name = trimmed;
+      saveState();
+      renderAll(isEditModeEnabled());
+    }
+
+    function removeTab(tabId) {
+      if (appState.tabs.length <= 1) {
+        alert('You must have at least one tab.');
+        return;
+      }
+      const tab = getTabById(tabId);
+      const name = tab ? tab.name : tabId;
+      if (!confirm(`Delete tab "${name}" and all its links?`)) return;
+
+      appState.tabs = appState.tabs.filter((t) => t.id !== tabId);
+      saveState();
+      if (activeTabId === tabId) {
+        activeTabId = null;
+      }
+      renderAll(isEditModeEnabled());
+    }
+
+    // Open all links in entire tab
+    function openAllLinks(tabId) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+      const urls = tab.slots
+        .filter((l) => l && l.url && /^https?:\/\//i.test(l.url))
+        .map((l) => l.url);
+
+      if (!urls.length) {
+        alert('No valid http/https links to open.');
+        return;
+      }
+
+      const msg = `Open ${urls.length} link(s) in new tabs?\nYour browser may block some popups.`;
+      if (!confirm(msg)) return;
+
+      urls.forEach((url) => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      });
+    }
+
+    // Open all links in a row
+    function openRowLinks(tabId, rowIndex) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+      ensureSlotsForTab(tab);
+      const cols = currentColumns || 6;
+      const start = rowIndex * cols;
+      const end = Math.min(start + cols, tab.slots.length);
+      const urls = [];
+      for (let i = start; i < end; i++) {
+        const link = tab.slots[i];
+        if (link && link.url && /^https?:\/\//i.test(link.url)) {
+          urls.push(link.url);
+        }
+      }
+      if (!urls.length) {
+        alert('No valid links in this row.');
+        return;
+      }
+      const msg = `Open ${urls.length} link(s) from this row in new tabs?\nYour browser may block some popups.`;
+      if (!confirm(msg)) return;
+
+      urls.forEach((url) => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      });
+    }
+
+    // Export / Import configuration
+    function exportConfig() {
+      const layout = {};
+      const cols = parseInt(localStorage.getItem(STORAGE_KEY_COLUMNS), 10);
+      const width = parseInt(localStorage.getItem(STORAGE_KEY_WIDTH), 10);
+      const tile = parseInt(localStorage.getItem(STORAGE_KEY_TILE_HEIGHT), 10);
+      if (!isNaN(cols)) layout.columns = cols;
+      if (!isNaN(width)) layout.width = width;
+      if (!isNaN(tile)) layout.tileHeight = tile;
+      if (activeTabId) layout.activeTab = activeTabId;
+
+      const config = {
+        version: 3,
+        state: appState,
+        layout,
+      };
+
+      const blob = new Blob([JSON.stringify(config, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'quicklaunch-config.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function applyLayoutFromStorage() {
+      const columnsRange = document.getElementById('columnsRange');
+      const columnsValue = document.getElementById('columnsValue');
+      const pageWidthRange = document.getElementById('pageWidthRange');
+      const pageWidthValue = document.getElementById('pageWidthValue');
+      const tileHeightRange = document.getElementById('tileHeightRange');
+      const tileHeightValue = document.getElementById('tileHeightValue');
+
+      // Columns
+      const savedColumns = parseInt(localStorage.getItem(STORAGE_KEY_COLUMNS), 10);
+      currentColumns = !isNaN(savedColumns)
+        ? savedColumns
+        : (columnsRange ? parseInt(columnsRange.value, 10) : 6) || 6;
+
+      if (columnsRange && columnsValue) {
+        columnsRange.value = currentColumns;
+        columnsValue.textContent = currentColumns;
+      }
+      document.documentElement.style.setProperty('--columns', currentColumns);
+
+      // Width
+      const savedWidth = parseInt(localStorage.getItem(STORAGE_KEY_WIDTH), 10);
+      const width = !isNaN(savedWidth)
+        ? savedWidth
+        : (pageWidthRange ? parseInt(pageWidthRange.value, 10) : 80) || 80;
+      document.documentElement.style.setProperty('--wrapper-width', width + 'vw');
+      if (pageWidthRange && pageWidthValue) {
+        pageWidthRange.value = width;
+        pageWidthValue.textContent = width + '%';
+      }
+
+      // Tile height
+      const savedTileHeight = parseInt(localStorage.getItem(STORAGE_KEY_TILE_HEIGHT), 10);
+      const tileHeight = !isNaN(savedTileHeight)
+        ? savedTileHeight
+        : (tileHeightRange ? parseInt(tileHeightRange.value, 10) : 90) || 90;
+      setTileVars(tileHeight);
+      if (tileHeightRange && tileHeightValue) {
+        tileHeightRange.value = tileHeight;
+        tileHeightValue.textContent = tileHeight + 'px';
+      }
+    }
+
+    function handleImportConfigFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const config = JSON.parse(e.target.result);
+          if (!config || !config.state || !Array.isArray(config.state.tabs)) {
+            alert('Invalid config file.');
+            return;
+          }
+          appState = config.state;
+          saveState(appState);
+
+          if (config.layout) {
+            if (typeof config.layout.columns === 'number') {
+              localStorage.setItem(
+                STORAGE_KEY_COLUMNS,
+                String(config.layout.columns)
+              );
+            }
+            if (typeof config.layout.width === 'number') {
+              localStorage.setItem(
+                STORAGE_KEY_WIDTH,
+                String(config.layout.width)
+              );
+            }
+            if (typeof config.layout.tileHeight === 'number') {
+              localStorage.setItem(
+                STORAGE_KEY_TILE_HEIGHT,
+                String(config.layout.tileHeight)
+              );
+            }
+            if (config.layout.activeTab && getTabById(config.layout.activeTab)) {
+              activeTabId = config.layout.activeTab;
+              localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, activeTabId);
+            } else {
+              activeTabId = appState.tabs[0]?.id || null;
+              if (activeTabId) {
+                localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, activeTabId);
+              }
+            }
+          } else {
+            activeTabId = appState.tabs[0]?.id || null;
+            if (activeTabId) {
+              localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, activeTabId);
+            }
+          }
+
+          applyLayoutFromStorage();
+          // rebuild slots for all tabs from links if needed
+          appState.tabs.forEach(ensureSlotsForTab);
+          renderAll(isEditModeEnabled());
+          event.target.value = '';
+          alert('Configuration imported.');
+        } catch (err) {
+          console.error(err);
+          alert('Failed to import configuration.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Modal handling
+    function openLinkModal(mode, tabId, index) {
+      const tab = getTabById(tabId);
+      if (!tab) return;
+
+      ensureSlotsForTab(tab);
+      linkModalState.mode = mode;
+      linkModalState.tabId = tabId;
+      linkModalState.index = index; // may be null for "any empty"
+      linkModalState.autoIconUrl = '';
+
+      const backdrop = document.getElementById('linkModalBackdrop');
+      const titleEl = document.getElementById('linkModalTitle');
+      const subtitleEl = document.getElementById('linkModalSubtitle');
+      const labelInput = document.getElementById('linkLabel');
+      const urlInput = document.getElementById('linkUrl');
+      const iconInput = document.getElementById('linkIcon');
+
+      if (mode === 'add') {
+        titleEl.textContent = 'Add link';
+        subtitleEl.textContent = `Tab: ${tab.name || 'Tab'}`;
+        labelInput.value = '';
+        urlInput.value = 'https://';
+        iconInput.value = '';
+      } else {
+        const link = tab.slots[index];
+        if (!link) return;
+        titleEl.textContent = 'Edit link';
+        subtitleEl.textContent = `Tab: ${tab.name || 'Tab'}`;
+        labelInput.value = link.label || '';
+        urlInput.value = link.url || '';
+        iconInput.value = link.icon || '';
+      }
+
+      updateIconPreviewFromInput();
+
+      backdrop.classList.add('open');
+      labelInput.focus();
+      labelInput.select();
+    }
+
+    function closeLinkModal() {
+      const backdrop = document.getElementById('linkModalBackdrop');
+      const form = document.getElementById('linkModalForm');
+      backdrop.classList.remove('open');
+      form.reset();
+      linkModalState.mode = 'add';
+      linkModalState.tabId = null;
+      linkModalState.index = null;
+      linkModalState.autoIconUrl = '';
+      updateIconPreviewFromInput();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      appState = loadState();
+
+      const savedActive = localStorage.getItem(STORAGE_KEY_ACTIVE_TAB);
+      if (savedActive && getTabById(savedActive)) {
+        activeTabId = savedActive;
+      } else {
+        activeTabId = appState.tabs[0]?.id || null;
+      }
+
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsPanel = document.getElementById('settingsPanel');
+      const columnsRange = document.getElementById('columnsRange');
+      const columnsValue = document.getElementById('columnsValue');
+      const pageWidthRange = document.getElementById('pageWidthRange');
+      const pageWidthValue = document.getElementById('pageWidthValue');
+      const tileHeightRange = document.getElementById('tileHeightRange');
+      const tileHeightValue = document.getElementById('tileHeightValue');
+      const editToggle = document.getElementById('editModeToggle');
+      const addTabBtn = document.getElementById('addTabBtn');
+      const exportBtn = document.getElementById('exportConfigBtn');
+      const importInput = document.getElementById('importConfigInput');
+
+      // Settings panel toggle
+      settingsBtn.addEventListener('click', () => {
+        const isOpen = settingsPanel.classList.toggle('open');
+        settingsBtn.classList.toggle('active', isOpen);
+      });
+
+      // Apply layout from storage (sets currentColumns, etc.)
+      applyLayoutFromStorage();
+
+      // Ensure slots exist for all tabs
+      appState.tabs.forEach(ensureSlotsForTab);
+
+      // Columns slider behaviour
+      columnsRange.addEventListener('input', function () {
+        const value = parseInt(this.value, 10);
+        if (isNaN(value)) return;
+        currentColumns = value;
+        document.documentElement.style.setProperty('--columns', value);
+        columnsValue.textContent = value;
+        localStorage.setItem(STORAGE_KEY_COLUMNS, String(value));
+        renderAll(isEditModeEnabled());
+      });
+
+      // Page width slider
+      pageWidthRange.addEventListener('input', function () {
+        const value = parseInt(this.value, 10);
+        if (isNaN(value)) return;
+        document.documentElement.style.setProperty('--wrapper-width', value + 'vw');
+        pageWidthValue.textContent = value + '%';
+        localStorage.setItem(STORAGE_KEY_WIDTH, String(value));
+      });
+
+      // Tile height slider
+      tileHeightRange.addEventListener('input', function () {
+        const value = parseInt(this.value, 10);
+        if (isNaN(value)) return;
+        setTileVars(value);
+        tileHeightValue.textContent = value + 'px';
+        localStorage.setItem(STORAGE_KEY_TILE_HEIGHT, String(value));
+      });
+
+      // Edit mode toggle
+      editToggle.addEventListener('change', () => {
+        renderAll(isEditModeEnabled());
+      });
+
+      // Add tab
+      addTabBtn.addEventListener('click', addTab);
+
+      // Export / import
+      exportBtn.addEventListener('click', exportConfig);
+      importInput.addEventListener('change', handleImportConfigFile);
+
+      // Modal hooks
+      const closeBtn = document.getElementById('linkModalClose');
+      const cancelBtn = document.getElementById('linkModalCancel');
+      const form = document.getElementById('linkModalForm');
+      const autoIconBtn = document.getElementById('autoIconBtn');
+      const urlInputModal = document.getElementById('linkUrl');
+      const iconInputModal = document.getElementById('linkIcon');
+
+      closeBtn.addEventListener('click', closeLinkModal);
+      cancelBtn.addEventListener('click', closeLinkModal);
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const label = document.getElementById('linkLabel').value.trim();
+        const url = document.getElementById('linkUrl').value.trim();
+        const icon = document.getElementById('linkIcon').value.trim();
+
+        if (!label || !url) {
+          alert('Label and URL are required.');
+          return;
+        }
+
+        const link = { label, url, icon };
+
+        if (linkModalState.mode === 'add') {
+          addLink(linkModalState.tabId, link, linkModalState.index);
+        } else {
+          updateLink(linkModalState.tabId, linkModalState.index, link);
+        }
+
+        closeLinkModal();
+      });
+
+      // Auto icon & preview handlers
+      urlInputModal.addEventListener('blur', () => {
+        autoDetectIcon(false);
+      });
+
+      iconInputModal.addEventListener('input', () => {
+        updateIconPreviewFromInput();
+      });
+
+      autoIconBtn.addEventListener('click', () => {
+        autoDetectIcon(true);
+      });
+
+      // Initial render
+      renderAll(false);
+    });
+  </script>
+</body>
+</html>
